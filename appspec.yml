@@ -1,0 +1,88 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /var/www/demo-wordpress.awssa.net
+  - source: /configs/www.conf
+    destination: /etc/php-fpm.d
+  - source: /configs/nginx.conf
+    destination: /etc/nginx
+  - source: /configs/demo-wordpress.awssa.net.conf
+    destination: /etc/nginx/sites-enabled
+  - source: /configs/wordpress.conf
+    destination: /etc/nginx/global
+  - source: /configs/restrictions.conf
+    destination: /etc/nginx/global
+  - source: /configs/wordpress-w3-total-cache.conf
+    destination: /etc/nginx/global
+permissions:
+  - object: /etc/php-fpm.d
+    pattern: "www.conf"
+    owner: root
+    group: root
+    mode: 644
+    type:
+      - file
+  - object: /etc/nginx
+    pattern: "nginx.conf"
+    owner: root
+    group: root
+    mode: 644
+    type:
+      - file
+  - object: /etc/nginx/sites-enabled
+    pattern: "demo-wordpress.awssa.net.conf"
+    owner: root
+    group: root
+    mode: 644
+    type:
+      - file
+  - object: /etc/nginx/global
+    pattern: "*.conf"
+    owner: root
+    group: root
+    mode: 644
+    type:
+      - file
+hooks:
+  BeforeInstall:
+    - location: scripts/install_dependencies.sh
+      timeout: 300
+      runas: root
+    - location: scripts/remove_old_files.sh
+      timeout: 300
+      runas: root
+    - location: scripts/install_new_relic.sh
+      timeout: 300
+      runas: root
+#    - location: scripts/install_appdynamics.sh
+#      timeout: 300
+#      runas: root
+  AfterInstall:
+    - location: scripts/install_creds.sh
+      timeout: 300
+      runas: root
+    - location: scripts/change_permissions.sh
+      timeout: 300
+      runas: root
+#    - location: scripts/mark_new_relic_deployment.php
+#      timeout: 300
+#      runas: root
+  ApplicationStart:
+    - location: scripts/start_server.sh
+      timeout: 300
+      runas: root
+#    - location: scripts/register_with_elb.sh
+#      timeout: 300
+#      runas: root
+  ApplicationStop:
+#    - location: scripts/deregister_from_elb.sh
+#      timeout: 300
+#      runas: root
+    - location: scripts/stop_server.sh
+      timeout: 300
+      runas: root
+  ValidateService:
+    - location: scripts/validate.sh
+      timeout: 300
+      runas: root
